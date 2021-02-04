@@ -1,6 +1,9 @@
 import React from 'react';
 import Navbar from './Header';
 import DisplayCards from './AppBody';
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+const axios = require('axios');
+
 
 class Home extends React.Component {
 
@@ -11,35 +14,38 @@ class Home extends React.Component {
     this.ZomatoFetch = this.ZomatoFetch.bind(this);
     this.InputField = this.InputField.bind(this);
   }
+  
   ZomatoFetch (evt) {
+    
     evt.preventDefault();
     let query;
     if (this.state.value.name !== '' && this.state.value.city !== '') {
       query = this.state.value.city;
-      fetch(`https://developers.zomato.com/api/v2.1/cities?q=${query}`, {
+
+      this.setState({...this.state, isFetching: true});
+      axios.get(`https://developers.zomato.com/api/v2.1/search?q=${query}`, {
         headers: {
-          "user-key": "90f6d5f6ac3a6e571086bee4f420a08c"
+          "user-key": "90f6d5f6ac3a6e571086bee4f420a08c",
+          "Accept": "application/json",
+          'Content-Type': 'application/json'
         }
       })
-        .then(response => {
-          response.json().then(() => {
-            var query1 = this.state.value.name;
-            fetch(`https://developers.zomato.com/api/v2.1/search?q=${query1}`, {
-              headers: {
-                "user-key": "90f6d5f6ac3a6e571086bee4f420a08c"
-              }
-            })
-              .then(response1 => {
-                response1.json().then(myJson1 => {
- 
-                  this.setState({ data: myJson1 });
-                  console.log(this.state.data);
-                  
-                });
-              }
-              )
+          .then(response => {
+            alert(JSON.stringify(response.data));
+              this.setState({data: response.data, isFetching: false})
+              
+          })
+          .catch(e => {
+            
+              console.log(e);
+              this.setState({...this.state, isFetching: false});
+
+              //this.setState({ data: myJson1 });
+              
           });
-        })
+      
+
+      
     }
 
     else if (this.state.value.name !== '') {
@@ -89,8 +95,11 @@ class Home extends React.Component {
   render() {
     return (
       <div>
+        <Router>
         <Navbar gofetch={this.ZomatoFetch} getdata={this.InputField} />
         <DisplayCards data={this.state.data} />
+        </Router>
+        
       </div>
     );
   }
